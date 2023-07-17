@@ -1,13 +1,18 @@
 #pip install google-cloud-pubsub
 from google.cloud import pubsub_v1
 
-def publish_message(project_id, topic_name, credential_file_path, message):
-    # Set the environment variable for the service account credentials
-    import os
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credential_file_path
+def get_credentials(credentials_json):
+    from google.oauth2 import service_account
+    import json
+    credentials = service_account.Credentials.from_service_account_info(json.loads(credentials_json))
+    return credentials
+
+def publish_message(project_id, topic_name, credentials_json, message):
+    # Get the service account credentials
+    credentials = get_credentials(credentials_json)
 
     # Create a PublisherClient with the specified project and credentials
-    publisher = pubsub_v1.PublisherClient()
+    publisher = pubsub_v1.PublisherClient(credentials=credentials)
 
     # Get the full topic path
     topic_path = publisher.topic_path(project_id, topic_name)
@@ -21,13 +26,12 @@ def publish_message(project_id, topic_name, credential_file_path, message):
     return result
 
 
-def receive_messages(project_id, subscription_name, credential_file_path, handler=None):
-    # Set the environment variable for the service account credentials
-    import os
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credential_file_path
+def receive_messages(project_id, subscription_name, credentials_json, handler=None):
+    # Get the service account credentials
+    credentials = get_credentials(credentials_json)
 
     # Create a SubscriberClient with the specified project and credentials
-    subscriber = pubsub_v1.SubscriberClient()
+    subscriber = pubsub_v1.SubscriberClient(credentials=credentials)
 
     # Get the full subscription path
     subscription_path = subscriber.subscription_path(project_id, subscription_name)
